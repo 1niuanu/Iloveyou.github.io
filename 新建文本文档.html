@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>💫 给纪欣容 ·</title>
+  <style>
+    /* ===== 全局重置 & 字体 ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #f0e8ec;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+      transition: background 1.4s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    /* 惊喜激活后的背景 — 更柔和的层次 */
+    body.surprise-active {
+      background: radial-gradient(circle at 25% 35%, #fce4ec, #f5c8d6 55%, #edb0c2 100%);
+    }
+
+    /* ===== 背景画布 (爱心粒子) ===== */
+    #heart-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 5;
+      opacity: 0;
+      transition: opacity 2.2s ease;
+    }
+
+    #heart-canvas.active {
+      opacity: 1;
+    }
+
+    /* ===== 毛玻璃主卡片 ===== */
+    .card {
+      max-width: 620px;
+      width: 100%;
+      background: rgba(255, 248, 250, 0.28);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border-radius: 72px 20px 72px 20px;
+      box-shadow: 
+        0 40px 72px rgba(140, 70, 90, 0.10),
+        0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+      padding: 48px 36px 52px;
+      text-align: center;
+      position: relative;
+      z-index: 20;
+      transition: all 0.9s cubic-bezier(0.23, 1, 0.32, 1);
+      border: 1px solid rgba(255, 220, 230, 0.15);
+    }
+
+    /* 惊喜卡片 — 毛玻璃加深，光晕浮现 */
+    .card.surprise {
+      background: rgba(255, 240, 245, 0.15);
+      backdrop-filter: blur(28px) saturate(220%);
+      -webkit-backdrop-filter: blur(28px) saturate(220%);
+      box-shadow: 
+        0 48px 96px rgba(180, 60, 100, 0.22),
+        0 0 0 2px rgba(255, 200, 215, 0.2) inset;
+      border-color: rgba(255, 180, 200, 0.18);
+      transform: scale(1.01);
+    }
+
+    /* ===== 装饰光晕 (毛玻璃外发光) ===== */
+    .card::before {
+      content: '';
+      position: absolute;
+      top: -100px;
+      right: -100px;
+      width: 320px;
+      height: 320px;
+      background: radial-gradient(circle, rgba(255, 180, 200, 0.12) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 2s ease;
+      z-index: -1;
+    }
+
+    .card.surprise::before {
+      opacity: 1;
+    }
+
+    .card::after {
+      content: '';
+      position: absolute;
+      bottom: -80px;
+      left: -80px;
+      width: 240px;
+      height: 240px;
+      background: radial-gradient(circle, rgba(255, 200, 220, 0.10) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 2s ease 0.3s;
+      z-index: -1;
+    }
+
+    .card.surprise::after {
+      opacity: 1;
+    }
+
+    /* ===== 头像 / 表情 ===== */
+    .avatar-wrapper {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 4px;
+    }
+
+    .avatar-emoji {
+      font-size: 4.6rem;
+      line-height: 1.2;
+      display: inline-block;
+      transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.03));
+    }
+
+    .card.surprise .avatar-emoji {
+      animation: floatHeart 3.2s ease-in-out infinite;
+      filter: drop-shadow(0 12px 32px rgba(200, 50, 80, 0.2));
+      transform: scale(1.04);
+    }
+
+    @keyframes floatHeart {
+      0% { transform: translateY(0px) scale(1); }
+      50% { transform: translateY(-14px) scale(1.05); }
+      100% { transform: translateY(0px) scale(1); }
+    }
+
+    /* ===== 标题 ===== */
+    .title {
+      font-size: 2.3rem;
+      font-weight: 600;
+      color: #3d1f2b;
+      margin: 6px 0 4px;
+      letter-spacing: 0.8px;
+      transition: all 0.6s ease;
+      text-shadow: 0 2px 16px rgba(255, 255, 255, 0.15);
+    }
+
+    .card.surprise .title {
+      color: #5c1a33;
+      text-shadow: 0 2px 28px rgba(255, 200, 220, 0.25);
+      font-size: 2.4rem;
+      font-weight: 650;
+    }
+
+    /* ===== 副标题 ===== */
+    .sub-text {
+      font-size: 1.0rem;
+      font-weight: 350;
+      color: #5d3a45;
+      background: rgba(255, 235, 240, 0.2);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: inline-block;
+      padding: 5px 26px;
+      border-radius: 60px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      margin-top: 2px;
+      margin-bottom: 12px;
+      transition: all 0.7s ease;
+      letter-spacing: 0.6px;
+    }
+
+    .card.surprise .sub-text {
+      background: rgba(255, 215, 225, 0.2);
+      border-color: rgba(255, 200, 215, 0.2);
+      color: #4a1e2e;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      font-weight: 400;
+    }
+
+    /* ===== 消息区域 ===== */
+    .message-box {
+      font-size: 1.08rem;
+      line-height: 1.85;
+      color: #2e1a22;
+      background: rgba(255, 245, 248, 0.2);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      padding: 22px 20px;
+      border-radius: 44px 10px 44px 10px;
+      border: 1px solid rgba(255, 220, 230, 0.12);
+      margin: 16px 0 24px;
+      transition: all 0.9s ease;
+      min-height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      box-shadow: 0 4px 20px rgba(140, 70, 90, 0.03);
+    }
+
+    .card.surprise .message-box {
+      background: rgba(255, 235, 240, 0.15);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-color: rgba(255, 180, 200, 0.15);
+      box-shadow: 0 8px 36px rgba(180, 60, 90, 0.05);
+    }
+
+    /* 普通消息 */
+    .message-box .ordinary-message {
+      transition: opacity 0.6s ease, transform 0.6s ease;
+      font-weight: 350;
+      color: #3d2630;
+    }
+
+    .message-box .ordinary-message.hide {
+      opacity: 0;
+      transform: scale(0.94);
+      display: none;
+    }
+
+    /* 惊喜消息  */
+    .message-box .hidden-message {
+      display: none;
+      font-size: 1.15rem;
+      font-weight: 400;
+      color: #4d1a2b;
+      line-height: 2.0;
+      animation: fadeInUp 0.9s cubic-bezier(0.23, 1, 0.32, 1);
+      letter-spacing: 0.3px;
+    }
+
+    .message-box .hidden-message.show {
+      display: block;
+    }
+
+    .message-box .hidden-message .highlight {
+      background: linear-gradient(135deg, #b3415e, #d66b85);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      font-weight: 600;
+      font-size: 1.25rem;
+      letter-spacing: 0.8px;
+    }
+
+    .message-box .hidden-message .accent-line {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 1.0rem;
+      font-weight: 300;
+      color: #6a3b4a;
+      letter-spacing: 1.2px;
+      border-top: 1px solid rgba(180, 100, 120, 0.15);
+      padding-top: 10px;
+      width: 70%;
+    }
+
+    @keyframes fadeInUp {
+      0% { opacity: 0; transform: translateY(18px) scale(0.96); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* ===== 按钮 ===== */
+    .btn {
+      border: none;
+      padding: 16px 42px;
+      border-radius: 80px;
+      font-size: 1.15rem;
+      font-weight: 500;
+      letter-spacing: 1.4px;
+      background: rgba(255, 255, 255, 0.35);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      color: #4d1a2b;
+      box-shadow: 0 6px 28px rgba(140, 70, 90, 0.06);
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      min-width: 180px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 80px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .btn:hover::after {
+      opacity: 1;
+    }
+
+    .btn-primary {
+      background: rgba(214, 107, 133, 0.55);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: #fff2f5;
+      border: 1px solid rgba(255, 200, 215, 0.3);
+      box-shadow: 0 8px 32px rgba(200, 70, 110, 0.15);
+    }
+
+    .btn-primary:hover {
+      background: rgba(194, 85, 115, 0.7);
+      transform: scale(1.02);
+      box-shadow: 0 12px 40px rgba(200, 70, 110, 0.25);
+    }
+
+    .btn:active {
+      transform: scale(0.95);
+    }
+
+    .btn:disabled {
+      opacity: 0.8;
+      cursor: default;
+      transform: none !important;
+    }
+
+    .btn:disabled::after {
+      opacity: 0;
+    }
+
+    /* ===== 底部 ===== */
+    .footer-note {
+      margin-top: 30px;
+      font-size: 0.82rem;
+      color: #6a3b4a;
+      opacity: 0.4;
+      letter-spacing: 1.4px;
+      border-top: 1px solid rgba(200, 150, 165, 0.08);
+      padding-top: 18px;
+      transition: all 0.7s ease;
+      font-weight: 300;
+    }
+
+    .card.surprise .footer-note {
+      opacity: 0.65;
+      color: #5a2a3a;
+      border-top-color: rgba(200, 150, 165, 0.15);
+    }
+
+    /* ===== 响应式 ===== */
+    @media (max-width: 480px) {
+      .card {
+        padding: 32px 18px 38px;
+        border-radius: 52px 14px 52px 14px;
+      }
+      .avatar-emoji {
+        font-size: 3.8rem;
+      }
+      .title {
+        font-size: 1.8rem;
+      }
+      .card.surprise .title {
+        font-size: 1.9rem;
+      }
+      .message-box {
+        font-size: 0.98rem;
+        padding: 18px 14px;
+        min-height: 85px;
+      }
+      .message-box .hidden-message {
+        font-size: 1.02rem;
+      }
+      .message-box .hidden-message .highlight {
+        font-size: 1.1rem;
+      }
+      .btn {
+        padding: 13px 28px;
+        font-size: 1.0rem;
+        min-width: 150px;
+        gap: 10px;
+      }
+      .sub-text {
+        font-size: 0.9rem;
+        padding: 4px 18px;
+      }
+      .message-box .hidden-message .accent-line {
+        width: 85%;
+        font-size: 0.9rem;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .btn {
+        padding: 11px 20px;
+        font-size: 0.9rem;
+        min-width: 130px;
+      }
+      .title {
+        font-size: 1.5rem;
+      }
+      .card.surprise .title {
+        font-size: 1.6rem;
+      }
+      .avatar-emoji {
+        font-size: 3.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 背景爱心 Canvas -->
+  <canvas id="heart-canvas"></canvas>
+
+  <!-- 毛玻璃主卡片 -->
+  <div class="card" id="loveCard">
+    <!-- 头像 -->
+    <div class="avatar-wrapper">
+      <div class="avatar-emoji" id="avatarEmoji">👋</div>
+    </div>
+    
+    <div class="title" id="titleText">嗨，纪欣容</div>
+    
+    <div class="sub-text" id="subText">今天过得怎么样？</div>
+
+    <!-- 消息区域 -->
+    <div class="message-box" id="messageBox">
+      <span class="ordinary-message" id="ordinaryMsg">
+        🌿 想跟你分享今天的阳光，<br>还有一杯刚好温度的咖啡。
+      </span>
+      <span class="hidden-message" id="surpriseMsg">
+        <span class="highlight">纪欣容</span>，<br>
+        有些话像傍晚的光，<br>不说出来也会自己蔓延。<br>
+        <span style="display:inline-block;margin-top:4px;">—— 我爱你。</span><br>
+        <span class="accent-line">我爱你</span>
+      </span>
+    </div>
+
+    <!-- 按钮 -->
+    <button class="btn btn-primary" id="surpriseBtn">
+      <span id="btnIcon">✦</span> 
+      <span id="btnText">轻轻一点</span>
+    </button>
+
+    <div class="footer-note" id="footerNote">💫 真的假的</div>
+  </div>
+
+  <script>
+    (function() {
+      // ---------- DOM ----------
+      const card = document.getElementById('loveCard');
+      const avatarEmoji = document.getElementById('avatarEmoji');
+      const titleText = document.getElementById('titleText');
+      const subText = document.getElementById('subText');
+      const ordinaryMsg = document.getElementById('ordinaryMsg');
+      const surpriseMsg = document.getElementById('surpriseMsg');
+      const surpriseBtn = document.getElementById('surpriseBtn');
+      const btnIcon = document.getElementById('btnIcon');
+      const btnText = document.getElementById('btnText');
+      const footerNote = document.getElementById('footerNote');
+      const canvas = document.getElementById('heart-canvas');
+      const ctx = canvas.getContext('2d');
+
+      let surpriseTriggered = false;
+
+      // ---------- Canvas 爱心粒子 ----------
+      let width, height;
+      let particles = [];
+      const MAX_PARTICLES = 65;
+      let animationId = null;
+      let canvasActive = false;
+
+      function resizeCanvas() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      function drawHeart(ctx, x, y, size, color, alpha) {
+        ctx.save();
+        ctx.globalAlpha = alpha || 0.7;
+        ctx.translate(x, y);
+        ctx.scale(size / 20, size / 20);
+        ctx.beginPath();
+        ctx.moveTo(0, -6);
+        ctx.bezierCurveTo(-12, -16, -20, 0, 0, 12);
+        ctx.bezierCurveTo(20, 0, 12, -16, 0, -6);
+        ctx.closePath();
+        ctx.fillStyle = color || '#e75480';
+        ctx.shadowColor = 'rgba(220, 80, 120, 0.25)';
+        ctx.shadowBlur = 18;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.restore();
+      }
+
+      class HeartParticle {
+        constructor() {
+          this.reset();
+        }
+        reset() {
+          this.x = Math.random() * width;
+          this.y = Math.random() * height - 20;
+          this.size = 12 + Math.random() * 28;
+          this.speedY = 0.2 + Math.random() * 0.8;
+          this.speedX = (Math.random() - 0.5) * 0.25;
+          this.alpha = 0.25 + Math.random() * 0.5;
+          const hue = 340 + Math.random() * 20;
+          this.color = `hsl(${hue}, 76%, 72%)`;
+          this.rotation = Math.random() * Math.PI * 2;
+          this.rotSpeed = (Math.random() - 0.5) * 0.018;
+        }
+        update() {
+          this.y += this.speedY;
+          this.x += this.speedX + Math.sin(this.y * 0.007) * 0.08;
+          this.rotation += this.rotSpeed;
+          if (this.y > height + 30) {
+            this.x = Math.random() * width;
+            this.y = -20 - Math.random() * 40;
+            this.size = 12 + Math.random() * 28;
+            this.speedY = 0.2 + Math.random() * 0.8;
+            this.alpha = 0.25 + Math.random() * 0.5;
+            const hue = 340 + Math.random() * 20;
+            this.color = `hsl(${hue}, 76%, 72%)`;
+          }
+          if (this.x < -30) this.x = width + 20;
+          if (this.x > width + 30) this.x = -20;
+        }
+        draw(ctx) {
+          ctx.save();
+          ctx.translate(this.x, this.y);
+          ctx.rotate(this.rotation);
+          drawHeart(ctx, 0, 0, this.size, this.color, this.alpha);
+          ctx.restore();
+        }
+      }
+
+      function initParticles(count = MAX_PARTICLES) {
+        particles = [];
+        for (let i = 0; i < count; i++) {
+          const p = new HeartParticle();
+          p.x = Math.random() * width;
+          p.y = Math.random() * height;
+          particles.push(p);
+        }
+      }
+
+      function animateParticles() {
+        if (!canvasActive) return;
+        ctx.clearRect(0, 0, width, height);
+        for (let p of particles) {
+          p.update();
+          p.draw(ctx);
+        }
+        animationId = requestAnimationFrame(animateParticles);
+      }
+
+      function startCanvas() {
+        if (canvasActive) return;
+        canvasActive = true;
+        canvas.classList.add('active');
+        initParticles(MAX_PARTICLES);
+        if (animationId) cancelAnimationFrame(animationId);
+        animateParticles();
+      }
+
+      // ---------- 触发惊喜 ----------
+      function triggerSurprise() {
+        if (surpriseTriggered) return;
+        surpriseTriggered = true;
+
+        card.classList.add('surprise');
+        document.body.classList.add('surprise-active');
+
+        avatarEmoji.textContent = '💗';
+        titleText.textContent = '给 纪欣容';
+        subText.textContent = '—— 你是我所有安静心动的理由';
+
+        ordinaryMsg.classList.add('hide');
+        surpriseMsg.classList.add('show');
+
+        btnIcon.textContent = '💌';
+        btnText.textContent = '已送达';
+        surpriseBtn.style.background = 'rgba(179, 65, 94, 0.65)';
+        surpriseBtn.style.borderColor = 'rgba(240, 155, 179, 0.35)';
+        surpriseBtn.style.boxShadow = '0 8px 40px rgba(200, 70, 110, 0.3)';
+        surpriseBtn.disabled = true;
+
+        footerNote.textContent = '❤️ 我喜欢你 · 纪欣容 ❤️';
+
+        startCanvas();
+
+        // 额外撒一波爱心
+        setTimeout(() => {
+          for (let i = 0; i < 26; i++) {
+            const p = new HeartParticle();
+            p.x = width / 2 + (Math.random() - 0.5) * 480;
+            p.y = height / 2 - 30 + (Math.random() - 0.5) * 300;
+            p.size = 16 + Math.random() * 34;
+            p.speedY = -0.35 - Math.random() * 0.9;
+            p.speedX = (Math.random() - 0.5) * 0.8;
+            p.alpha = 0.65 + Math.random() * 0.35;
+            const hue = 330 + Math.random() * 25;
+            p.color = `hsl(${hue}, 82%, 72%)`;
+            particles.push(p);
+          }
+          if (particles.length > MAX_PARTICLES + 35) {
+            particles.splice(0, particles.length - MAX_PARTICLES - 25);
+          }
+        }, 350);
+
+        console.log('💖 纪欣容，心意已送达 ✨');
+      }
+
+      // ---------- 绑定事件 ----------
+      surpriseBtn.addEventListener('click', function(e) {
+        if (surpriseTriggered) return;
+        triggerSurprise();
+        surpriseBtn.style.transform = 'scale(0.94)';
+        setTimeout(() => surpriseBtn.style.transform = '', 200);
+      });
+
+      // 双击卡片触发
+      card.addEventListener('dblclick', function(e) {
+        if (surpriseTriggered) return;
+        triggerSurprise();
+      });
+
+      // 窗口调整
+      window.addEventListener('resize', () => {
+        resizeCanvas();
+        if (canvasActive) {
+          for (let p of particles) {
+            p.x = Math.random() * width;
+            p.y = Math.random() * height;
+          }
+        }
+      });
+
+      console.log('💫 纪欣容，毛玻璃叙情已就绪 ✦');
+    })();
+  </script>
+</body>
+</html>
